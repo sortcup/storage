@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Dashboard</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+  <!-- Login Page -->
+  <section id="loginPage" class="page login-page">
+    <div class="login-card">
+      <h1>Inventory Login</h1>
+      <p>Enter your access code to continue</p>
+
+      <input 
+        type="text" 
+        id="codeInput" 
+        placeholder="Enter code" 
+        autocomplete="off"
+      />
+
+      <button id="loginBtn">Login</button>
+    </div>
+  </section>
+
+  <!-- Dashboard Page -->
+  <section id="dashboardPage" class="page hidden">
+
+    <header class="topbar">
+      <div>
+        <h2 id="dashboardTitle">Dashboard</h2>
+        <p id="userInfo"></p>
+      </div>
+
+      <button id="logoutBtn" class="danger-btn">Logout</button>
+    </header>
+
+    <!-- Main Admin Dashboard -->
+    <main id="mainDashboard" class="hidden dashboard">
+
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="addProductTab">Add Product</button>
+        <button class="tab-btn" data-tab="productsTab">All Products</button>
+        <button class="tab-btn" data-tab="resultsTab">Results</button>
+      </nav>
+
+      <!-- Add Product -->
+      <section id="addProductTab" class="tab-content active">
+        <div class="panel">
+          <h3>Add New Product</h3>
+
+          <form id="productForm" class="product-form">
+
+            <div class="form-group">
+              <label>Codeabare</label>
+              <input type="text" id="codeabare" required />
+            </div>
+
+            <div class="form-group">
+              <label>Product Name</label>
+              <input type="text" id="nameproduit" required />
+            </div>
+
+            <div class="form-group">
+              <label>Matiere</label>
+              <select id="matiere" required>
+                <option value="">Select</option>
+                <option value="equide">equide</option>
+                <option value="solide">solide</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Contiter</label>
+              <input type="number" id="contiter" min="1" required />
+            </div>
+
+            <div class="form-group">
+              <label>Price</label>
+              <input type="number" id="price" step="0.01" min="0" required />
+            </div>
+
+            <div class="form-group">
+              <label>Image URL or File Name</label>
+              <input type="text" id="image" placeholder="tapie.png or image URL" />
+            </div>
+
+            <div class="form-group">
+              <label>From</label>
+              <div class="inline-input">
+                <select id="fromSelect" required></select>
+                <button type="button" id="addSourceBtn">+</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Weidth</label>
+              <input type="text" id="weidth" placeholder="200g" />
+            </div>
+
+            <div class="form-group">
+              <label>To</label>
+              <select id="toSelect" required></select>
+            </div>
+
+            <button type="submit" class="primary-btn">Add Product</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Products -->
+      <section id="productsTab" class="tab-content">
+        <div class="panel">
+          <h3>Filters</h3>
+
+          <div class="filters">
+            <select id="filterMatiere">
+              <option value="">All Matiere</option>
+              <option value="equide">equide</option>
+              <option value="solide">solide</option>
+            </select>
+
+            <select id="filterFrom">
+              <option value="">All Sources</option>
+            </select>
+
+            <select id="filterTo">
+              <option value="">All Users</option>
+            </select>
+
+            <button id="clearFiltersBtn">Clear Filters</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-header">
+            <h3>All Products</h3>
+            <button id="refreshProductsBtn">Refresh</button>
+          </div>
+
+          <div id="productsGrid" class="products-grid"></div>
+        </div>
+      </section>
+
+      <!-- Results -->
+      <section id="resultsTab" class="tab-content">
+        <div class="panel">
+          <div class="section-header">
+            <h3>Result Transactions</h3>
+            <button id="refreshResultsBtn">Refresh</button>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Codeabare</th>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>To</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Normal User Dashboard -->
+    <main id="userDashboard" class="hidden dashboard">
+      <div class="panel">
+        <div class="section-header">
+          <h3>My Products</h3>
+          <button id="refreshUserProductsBtn">Refresh</button>
+        </div>
+
+        <div id="userProductsGrid" class="products-grid"></div>
+      </div>
+    </main>
+
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
