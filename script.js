@@ -317,8 +317,8 @@ function createProductCard(product, isAdmin) {
   const imgHtml = product.image
     ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.nameproduit)}" onerror="this.parentElement.innerHTML='<span class=&quot;no-image&quot;>No Image</span>'">`
     : `<span class="no-image">No Image</span>`;
-
-  card.innerHTML = `
+  if (isAdmin) {
+    card.innerHTML = `
     <div class="product-image">
       ${imgHtml}
     </div>
@@ -330,7 +330,6 @@ function createProductCard(product, isAdmin) {
       <p><strong>Matiere:</strong> ${escapeHtml(product.matiere)}</p>
       <p><strong>Contiter:</strong> ${escapeHtml(product.contiter)}</p>
       <p><strong>Price:</strong> ${escapeHtml(product.price)}</p>
-      <p><strong>Image:</strong> ${escapeHtml(product.image)}</p>
       <p><strong>From:</strong> ${escapeHtml(product.from)}</p>
       <p><strong>Weidth:</strong> ${escapeHtml(product.weidth)}</p>
       <p><strong>To:</strong> ${escapeHtml(product.to)}</p>
@@ -345,11 +344,36 @@ function createProductCard(product, isAdmin) {
     </div>
   `;
 
-  if (isAdmin) {
     card.querySelector(".remove-btn").addEventListener("click", function () {
       adminRemoveProduct(product);
     });
   } else {
+    card.innerHTML = `
+    <div class="product-image">
+      ${imgHtml}
+    </div>
+
+    <div class="product-body">
+      <h4>${escapeHtml(product.nameproduit)}</h4>
+
+      <p><strong>Codeabare:</strong> ${escapeHtml(product.codeabare)}</p>
+      <p><strong>Matiere:</strong> ${escapeHtml(product.matiere)}</p>
+      <p><strong>Contiter:</strong> ${escapeHtml(product.contiter)}</p>
+      <p><strong>Price:</strong> ${escapeHtml(product.price)}</p>
+      <p><strong>From:</strong> ${escapeHtml(product.from)}</p>
+      <p><strong>Weidth:</strong> ${escapeHtml(product.weidth)}</p>
+      <p><strong>To:</strong> ${escapeHtml(product.to)}</p>
+
+      <div class="card-actions">
+        ${
+          isAdmin 
+          ? `<button class="remove-btn">Remove / Decrease</button>` 
+          : `<button class="receive-btn">Receive Product</button>`
+        }
+      </div>
+    </div>
+  `;
+
     card.querySelector(".receive-btn").addEventListener("click", function () {
       userReceiveProduct(product);
     });
