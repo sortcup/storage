@@ -55,62 +55,195 @@
         <div class="panel">
           <h3>Add New Product</h3>
 
-          <form id="productForm" class="product-form">
+          <div class="add-product-layout">
 
-            <div class="form-group">
-              <label>Codeabare</label>
-              <input type="text" id="codeabare" required />
-            </div>
+            <!-- Existing Add Product form -->
+            <form id="productForm" class="product-form">
 
-            <div class="form-group">
-              <label>Product Name</label>
-              <input type="text" id="nameproduit" required />
-            </div>
+              <div class="form-group">
+                <label>Codeabare</label>
+                <input type="text" id="codeabare" required />
+              </div>
 
-            <div class="form-group">
-              <label>Matiere</label>
-              <select id="matiere" required>
-                <option value="">Select</option>
-                <option value="equide">equide</option>
-                <option value="solide">solide</option>
-              </select>
-            </div>
+              <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" id="nameproduit" required />
+              </div>
 
-            <div class="form-group">
-              <label>Contiter</label>
-              <input type="number" id="contiter" min="1" required />
-            </div>
+              <div class="form-group">
+                <label>Matiere</label>
+                <select id="matiere" required>
+                  <option value="">Select</option>
+                  <option value="equide">equide</option>
+                  <option value="solide">solide</option>
+                </select>
+              </div>
 
-            <div class="form-group">
-              <label>Price</label>
-              <input type="number" id="price" step="0.01" min="0" required />
-            </div>
+              <div class="form-group">
+                <label>Contiter / Quantity</label>
+                <input type="number" id="contiter" min="1" required />
+              </div>
 
-            <div class="form-group">
-              <label>Image URL or File Name</label>
-              <input type="text" id="image" placeholder="tapie.png or image URL" />
-            </div>
+              <div class="form-group">
+                <label>Product Price</label>
+                <input type="number" id="price" step="0.001" min="0" required />
+              </div>
 
-            <div class="form-group">
-              <label>From</label>
-              <div class="inline-input">
-                <select id="fromSelect" required></select>
-                <button type="button" id="addSourceBtn">+</button>
+              <!-- New calculated price field -->
+              <div class="form-group">
+                <label>Price Calculated Based on Weight</label>
+                <input 
+                  type="number" 
+                  id="calculatedWeightPrice" 
+                  step="0.001" 
+                  min="0" 
+                  readonly 
+                  placeholder="Use calculator"
+                />
+              </div>
+
+              <!-- New selling price field -->
+              <div class="form-group">
+                <label>Selling Price</label>
+                <input 
+                  type="number" 
+                  id="sellingPrice" 
+                  step="0.001" 
+                  min="0" 
+                  placeholder="Enter final selling price"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Image URL or File Name</label>
+                <input type="text" id="image" placeholder="tapie.png or image URL" />
+              </div>
+
+              <div class="form-group">
+                <label>From</label>
+                <div class="inline-input">
+                  <select id="fromSelect" required></select>
+                  <button type="button" id="addSourceBtn">+</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Weidth</label>
+                <input type="text" id="weidth" placeholder="200g" />
+              </div>
+
+              <div class="form-group">
+                <label>To</label>
+                <select id="toSelect" required></select>
+              </div>
+
+              <button type="submit" class="primary-btn">Add Product</button>
+            </form>
+
+            <!-- Integrated calculator from calculateur prix piece devises -->
+            <div class="calculator-box">
+              <h3>Weight Price Calculator</h3>
+              <p class="muted">
+                Calculate product cost using shipping price, bag weight, product price, product weight, and currencies.
+              </p>
+
+              <div class="calc-grid3">
+                <div>
+                  <label for="calcShippingPrice">Shipping / Bag Price</label>
+                  <input id="calcShippingPrice" type="number" min="0" step="0.001" placeholder="Example: 300" />
+                </div>
+
+                <div>
+                  <label for="calcShippingCurrency">Shipping Currency</label>
+                  <select id="calcShippingCurrency"></select>
+                </div>
+
+                <div>
+                  <label for="calcBagWeight">Total Bag Weight</label>
+                  <input id="calcBagWeight" type="number" min="0" step="0.001" placeholder="Example: 23" />
+                </div>
+              </div>
+
+              <div class="calc-grid3">
+                <div>
+                  <label for="calcPiecePrice">Original Piece Price</label>
+                  <input id="calcPiecePrice" type="number" min="0" step="0.001" placeholder="Example: 50" />
+                </div>
+
+                <div>
+                  <label for="calcPieceCurrency">Piece Currency</label>
+                  <select id="calcPieceCurrency"></select>
+                </div>
+
+                <div>
+                  <label for="calcPieceWeight">Piece Weight</label>
+                  <input id="calcPieceWeight" type="number" min="0" step="0.001" placeholder="Example: 2" />
+                </div>
+              </div>
+
+              <div class="calc-grid">
+                <div>
+                  <label for="calcOutputCurrency">Output Currency</label>
+                  <select id="calcOutputCurrency"></select>
+                </div>
+
+                <div>
+                  <label for="calcUnit">Weight Unit</label>
+                  <select id="calcUnit">
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                  </select>
+                </div>
+              </div>
+
+              <h4>Exchange Rates</h4>
+              <p class="muted">
+                Meaning: 1 currency unit = how much in TND. You can edit rates.
+              </p>
+
+              <div id="calcRates" class="calc-rates"></div>
+
+              <button type="button" id="resetCalcRatesBtn" class="secondary-btn">
+                Reset Example Rates
+              </button>
+
+              <button type="button" id="calculatePriceBtn" class="primary-btn">
+                Calculate
+              </button>
+
+              <div id="calcError" class="calc-error"></div>
+
+              <div id="calcResult" class="calc-result hidden">
+                <h4>Result</h4>
+
+                <div class="calc-line">
+                  <span>Price per weight unit</span>
+                  <strong id="calcPricePerKg"></strong>
+                </div>
+
+                <div class="calc-line">
+                  <span>Piece shipping cost</span>
+                  <strong id="calcPieceShipping"></strong>
+                </div>
+
+                <div class="calc-line">
+                  <span>Original price after conversion</span>
+                  <strong id="calcOriginalPrice"></strong>
+                </div>
+
+                <div class="calc-line">
+                  <span>Final calculated price</span>
+                  <strong id="calcFinalPrice"></strong>
+                </div>
+
+                <div class="calc-line">
+                  <span>Final in TND</span>
+                  <strong id="calcFinalTnd"></strong>
+                </div>
               </div>
             </div>
 
-            <div class="form-group">
-              <label>Weidth</label>
-              <input type="text" id="weidth" placeholder="200g" />
-            </div>
-
-            <div class="form-group">
-              <label>To</label>
-              <select id="toSelect" required></select>
-            </div>
-
-            <button type="submit" class="primary-btn">Add Product</button>
-          </form>
+          </div>
         </div>
       </section>
 

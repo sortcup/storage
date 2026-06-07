@@ -3,7 +3,7 @@
 // Example:
 // const API_URL = "https://script.google.com/macros/s/XXXXXXX/exec";
 // =====================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxkH7kFYX6v5g3-1PU94J8gmuEnP6aUmTRqL18cGBsS2u22fB6uoW9keJf3vyxRZt-rYA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbz6kmEtVTUS4twuZQzTk-hKRbvnjmrTLvcnb4JzriiQG3atu8xhnPJ1nIaknrOuVvQVKA/exec";
 
 // Global data
 let currentUser = null;
@@ -138,8 +138,9 @@ logoutBtn.addEventListener("click", function () {
   location.reload();
 });
 
-// Restore login from localStorage
 window.addEventListener("load", async function () {
+  initializeCalculator();
+
   const savedUser = localStorage.getItem("inventoryUser");
 
   if (savedUser) {
@@ -198,29 +199,27 @@ async function loadResults() {
 }
 
 function fillSelects() {
-  // Sources for product form
   fromSelect.innerHTML = `<option value="">Select source</option>`;
   filterFrom.innerHTML = `<option value="">All Sources</option>`;
 
   sources.forEach(source => {
-    fromSelect.innerHTML += `<option value="${escapeHtml(source)}">${escapeHtml(source)}</option>`;
-    filterFrom.innerHTML += `<option value="${escapeHtml(source)}">${escapeHtml(source)}</option>`;
+    fromSelect.innerHTML += `<option value="${escapeAttr(source)}">${escapeHtml(source)}</option>`;
+    filterFrom.innerHTML += `<option value="${escapeAttr(source)}">${escapeHtml(source)}</option>`;
   });
 
-  // Users from Codes sheet except main
   toSelect.innerHTML = `<option value="">Select user</option>`;
   filterTo.innerHTML = `<option value="">All Users</option>`;
 
   codes
     .filter(item => item.name !== "main")
     .forEach(item => {
-      toSelect.innerHTML += `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)}</option>`;
-      filterTo.innerHTML += `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)}</option>`;
+      toSelect.innerHTML += `<option value="${escapeAttr(item.name)}">${escapeHtml(item.name)}</option>`;
+      filterTo.innerHTML += `<option value="${escapeAttr(item.name)}">${escapeHtml(item.name)}</option>`;
     });
 }
 
 // Add custom source directly into the select.
-// It will become permanent after a product using it is saved.
+// It becomes permanent after a product using it is saved.
 document.getElementById("addSourceBtn").addEventListener("click", async function () {
   const { value } = await Swal.fire({
     title: "Add New Source",
@@ -247,6 +246,9 @@ document.getElementById("addSourceBtn").addEventListener("click", async function
 
 // =====================================================
 // Add product
+// New fields added:
+// calculatedWeightPrice
+// sellingPrice
 // =====================================================
 productForm.addEventListener("submit", async function (event) {
   event.preventDefault();
@@ -257,6 +259,8 @@ productForm.addEventListener("submit", async function (event) {
     matiere: document.getElementById("matiere").value,
     contiter: Number(document.getElementById("contiter").value),
     price: Number(document.getElementById("price").value),
+    calculatedWeightPrice: Number(document.getElementById("calculatedWeightPrice").value || 0),
+    sellingPrice: Number(document.getElementById("sellingPrice").value || 0),
     image: document.getElementById("image").value.trim(),
     from: fromSelect.value,
     weidth: document.getElementById("weidth").value.trim(),
@@ -273,6 +277,9 @@ productForm.addEventListener("submit", async function (event) {
   Swal.fire("Success", "Product added successfully.", "success");
 
   productForm.reset();
+  document.getElementById("calculatedWeightPrice").value = "";
+  document.getElementById("sellingPrice").value = "";
+  document.getElementById("calcResult").classList.add("hidden");
 
   await loadSources();
   await loadAllProducts();
@@ -315,66 +322,51 @@ function createProductCard(product, isAdmin) {
   card.className = "product-card";
 
   const imgHtml = product.image
-    ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.nameproduit)}" onerror="this.parentElement.innerHTML='<span class=&quot;no-image&quot;>No Image</span>'">`
+    ? `<img src="${escapeAttr(product.image)}" alt="${escapeAttr(product.nameproduit)}" onerror="this.parentElement.innerHTML='<span class=&quot;no-image&quot;>No Image</span>'">`
     : `<span class="no-image">No Image</span>`;
+
+  card.innerHTML = `
+    <div class="product-image">
+      ${imgHtml}
+    </div>
+
+    <div class="product-body">
+      <h4>${escapeHtml(product.nameproduit)}</h4>
+
+      <p><strong>Codeabare:</strong> ${escapeHtml(product.codeabare)}</p>
+      <p><strong>Matiere:</strong> ${escapeHtml(product.matiere)}</p>
+      <p><strong>Quantity:</strong> ${escapeHtml(product.contiter)}</p>
+      <p><strong>Product Price:</strong> ${escapeHtml(product.price)}</p>
+      <p><strong>Calculated Weight Price:</strong> ${escapeHtml(product.calculatedWeightPrice)}</p>
+      <p><strong>Selling Price:</strong> ${escapeHtml(product.sellingPrice)}</p>
+      <p><strong>Image:</strong> ${escapeHtml(product.image)}</p>
+      <p><strong>From:</strong> ${escapeHtml(product.from)}</p>
+      <p><strong>Weidth:</strong> ${escapeHtml(product.weidth)}</p>
+      <p><strong>To:</strong> ${escapeHtml(product.to)}</p>
+
+      <div class="card-actions">
+        ${
+          isAdmin
+            ? `
+              <button class="edit-btn">Edit Product</button>
+              <button class="receive-btn">Receive Product</button>
+            `
+            : `<button class="confirm-btn">Confirm</button>`
+        }
+      </div>
+    </div>
+  `;
+
   if (isAdmin) {
-    card.innerHTML = `
-    <div class="product-image">
-      ${imgHtml}
-    </div>
-
-    <div class="product-body">
-      <h4>${escapeHtml(product.nameproduit)}</h4>
-
-      <p><strong>Codeabare:</strong> ${escapeHtml(product.codeabare)}</p>
-      <p><strong>Matiere:</strong> ${escapeHtml(product.matiere)}</p>
-      <p><strong>Contiter:</strong> ${escapeHtml(product.contiter)}</p>
-      <p><strong>Price:</strong> ${escapeHtml(product.price)}</p>
-      <p><strong>From:</strong> ${escapeHtml(product.from)}</p>
-      <p><strong>Weidth:</strong> ${escapeHtml(product.weidth)}</p>
-      <p><strong>To:</strong> ${escapeHtml(product.to)}</p>
-
-      <div class="card-actions">
-        ${
-          isAdmin 
-          ? `<button class="remove-btn">Remove / Decrease</button>` 
-          : `<button class="receive-btn">Receive Product</button>`
-        }
-      </div>
-    </div>
-  `;
-
-    card.querySelector(".remove-btn").addEventListener("click", function () {
-      adminRemoveProduct(product);
+    card.querySelector(".edit-btn").addEventListener("click", function () {
+      editProduct(product);
     });
-  } else {
-    card.innerHTML = `
-    <div class="product-image">
-      ${imgHtml}
-    </div>
-
-    <div class="product-body">
-      <h4>${escapeHtml(product.nameproduit)}</h4>
-
-      <p><strong>Codeabare:</strong> ${escapeHtml(product.codeabare)}</p>
-      <p><strong>Matiere:</strong> ${escapeHtml(product.matiere)}</p>
-      <p><strong>Contiter:</strong> ${escapeHtml(product.contiter)}</p>
-      <p><strong>Price:</strong> ${escapeHtml(product.price)}</p>
-      <p><strong>From:</strong> ${escapeHtml(product.from)}</p>
-      <p><strong>Weidth:</strong> ${escapeHtml(product.weidth)}</p>
-      <p><strong>To:</strong> ${escapeHtml(product.to)}</p>
-
-      <div class="card-actions">
-        ${
-          isAdmin 
-          ? `<button class="remove-btn">Remove / Decrease</button>` 
-          : `<button class="receive-btn">Receive Product</button>`
-        }
-      </div>
-    </div>
-  `;
 
     card.querySelector(".receive-btn").addEventListener("click", function () {
+      receiveStock(product);
+    });
+  } else {
+    card.querySelector(".confirm-btn").addEventListener("click", function () {
       userReceiveProduct(product);
     });
   }
@@ -383,32 +375,168 @@ function createProductCard(product, isAdmin) {
 }
 
 // =====================================================
-// Admin remove/decrease product
+// Edit product functionality
+// Allows admin to update all product data
 // =====================================================
-async function adminRemoveProduct(product) {
-  const confirm = await Swal.fire({
-    title: "Confirm Action",
-    text: Number(product.contiter) > 1
-      ? "This will decrease quantity by 1."
-      : "Quantity is 1. This will delete the product.",
-    icon: "warning",
+async function editProduct(product) {
+  const userOptions = codes
+    .filter(item => item.name !== "main")
+    .map(item => {
+      const selected = item.name === product.to ? "selected" : "";
+      return `<option value="${escapeAttr(item.name)}" ${selected}>${escapeHtml(item.name)}</option>`;
+    })
+    .join("");
+
+  const sourceOptions = sources
+    .map(source => {
+      const selected = source === product.from ? "selected" : "";
+      return `<option value="${escapeAttr(source)}" ${selected}>${escapeHtml(source)}</option>`;
+    })
+    .join("");
+
+  const html = `
+    <div class="edit-product-grid">
+      <div>
+        <label>Codeabare</label>
+        <input id="editCodeabare" value="${escapeAttr(product.codeabare)}">
+      </div>
+
+      <div>
+        <label>Product Name</label>
+        <input id="editNameproduit" value="${escapeAttr(product.nameproduit)}">
+      </div>
+
+      <div>
+        <label>Matiere</label>
+        <select id="editMatiere">
+          <option value="equide" ${product.matiere === "equide" ? "selected" : ""}>equide</option>
+          <option value="solide" ${product.matiere === "solide" ? "selected" : ""}>solide</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Quantity</label>
+        <input id="editContiter" type="number" min="0" value="${escapeAttr(product.contiter)}">
+      </div>
+
+      <div>
+        <label>Product Price</label>
+        <input id="editPrice" type="number" step="0.001" min="0" value="${escapeAttr(product.price)}">
+      </div>
+
+      <div>
+        <label>Calculated Weight Price</label>
+        <input id="editCalculatedWeightPrice" type="number" step="0.001" min="0" value="${escapeAttr(product.calculatedWeightPrice)}">
+      </div>
+
+      <div>
+        <label>Selling Price</label>
+        <input id="editSellingPrice" type="number" step="0.001" min="0" value="${escapeAttr(product.sellingPrice)}">
+      </div>
+
+      <div>
+        <label>Image</label>
+        <input id="editImage" value="${escapeAttr(product.image)}">
+      </div>
+
+      <div>
+        <label>From</label>
+        <select id="editFrom">${sourceOptions}</select>
+      </div>
+
+      <div>
+        <label>Weidth</label>
+        <input id="editWeidth" value="${escapeAttr(product.weidth)}">
+      </div>
+
+      <div>
+        <label>To</label>
+        <select id="editTo">${userOptions}</select>
+      </div>
+    </div>
+  `;
+
+  const result = await Swal.fire({
+    title: "Edit Product",
+    html,
+    width: 850,
     showCancelButton: true,
-    confirmButtonText: "Yes, continue"
+    confirmButtonText: "Save / Update",
+    preConfirm: () => {
+      const updatedProduct = {
+        oldCodeabare: product.codeabare,
+        codeabare: document.getElementById("editCodeabare").value.trim(),
+        nameproduit: document.getElementById("editNameproduit").value.trim(),
+        matiere: document.getElementById("editMatiere").value,
+        contiter: Number(document.getElementById("editContiter").value),
+        price: Number(document.getElementById("editPrice").value || 0),
+        calculatedWeightPrice: Number(document.getElementById("editCalculatedWeightPrice").value || 0),
+        sellingPrice: Number(document.getElementById("editSellingPrice").value || 0),
+        image: document.getElementById("editImage").value.trim(),
+        from: document.getElementById("editFrom").value,
+        weidth: document.getElementById("editWeidth").value.trim(),
+        to: document.getElementById("editTo").value
+      };
+
+      if (!updatedProduct.codeabare || !updatedProduct.nameproduit || !updatedProduct.matiere || updatedProduct.contiter < 0 || !updatedProduct.from || !updatedProduct.to) {
+        Swal.showValidationMessage("Please complete all required fields.");
+        return false;
+      }
+
+      return updatedProduct;
+    }
   });
 
-  if (!confirm.isConfirmed) return;
+  if (!result.isConfirmed) return;
 
-  await apiRequest("updateQuantity", {
-    codeabare: product.codeabare
+  await apiRequest("updateProduct", {
+    product: result.value
   });
 
-  Swal.fire("Done", "Product quantity updated.", "success");
+  Swal.fire("Updated", "Product updated successfully.", "success");
+
+  await loadSources();
+  await loadAllProducts();
+  fillSelects();
+}
+
+// =====================================================
+// Receive Product for admin
+// This increases stock quantity instead of removing it
+// =====================================================
+async function receiveStock(product) {
+  const { value: quantity } = await Swal.fire({
+    title: "Receive Product",
+    input: "number",
+    inputLabel: `Enter received quantity for ${product.nameproduit}`,
+    inputPlaceholder: "Example: 5",
+    showCancelButton: true,
+    inputAttributes: {
+      min: 1,
+      step: 1
+    },
+    inputValidator: value => {
+      if (!value || Number(value) <= 0) {
+        return "Please enter a valid quantity greater than 0";
+      }
+    }
+  });
+
+  if (!quantity) return;
+
+  await apiRequest("receiveStock", {
+    codeabare: product.codeabare,
+    quantity: Number(quantity)
+  });
+
+  Swal.fire("Success", "Stock quantity increased.", "success");
 
   await loadAllProducts();
 }
 
 // =====================================================
 // User dashboard
+// Normal user confirm still decreases quantity and adds Result row
 // =====================================================
 async function loadUserProducts() {
   const result = await apiRequest("getProductsByUser", {
@@ -433,12 +561,13 @@ async function userReceiveProduct(product) {
     title: "Final Selling Price",
     input: "number",
     inputLabel: "Enter the real/final selling price",
-    inputPlaceholder: "Example: 20",
+    inputPlaceholder: product.sellingPrice || "Example: 20",
     showCancelButton: true,
     inputAttributes: {
       min: 0,
-      step: "0.01"
+      step: "0.001"
     },
+    inputValue: product.sellingPrice || "",
     inputValidator: value => {
       if (!value || Number(value) < 0) {
         return "Please enter a valid price";
@@ -527,7 +656,183 @@ document.getElementById("refreshUserProductsBtn").addEventListener("click", load
 document.getElementById("refreshResultsBtn").addEventListener("click", loadResults);
 
 // =====================================================
-// Security helper for displaying text safely
+// Integrated calculator logic
+// Adapted from calculateur prix piece devises
+// =====================================================
+const calcCurrencies = ["TND", "EUR", "USD", "GBP", "TRY", "AED", "SAR", "CAD"];
+
+const calcDefaultRatesToTnd = {
+  TND: 1,
+  EUR: 3.35,
+  USD: 3.10,
+  GBP: 3.95,
+  TRY: 0.095,
+  AED: 0.84,
+  SAR: 0.83,
+  CAD: 2.28
+};
+
+function initializeCalculator() {
+  fillCalculatorCurrencies();
+  buildCalculatorRates();
+
+  document.getElementById("calculatePriceBtn").addEventListener("click", calculateWeightPrice);
+  document.getElementById("resetCalcRatesBtn").addEventListener("click", resetCalculatorRates);
+}
+
+function fillCalculatorCurrencies() {
+  ["calcShippingCurrency", "calcPieceCurrency", "calcOutputCurrency"].forEach(id => {
+    const select = document.getElementById(id);
+    select.innerHTML = "";
+
+    calcCurrencies.forEach(currency => {
+      const option = document.createElement("option");
+      option.value = currency;
+      option.textContent = currency;
+      select.appendChild(option);
+    });
+  });
+
+  document.getElementById("calcShippingCurrency").value = "TND";
+  document.getElementById("calcPieceCurrency").value = "EUR";
+  document.getElementById("calcOutputCurrency").value = "TND";
+}
+
+function buildCalculatorRates() {
+  const box = document.getElementById("calcRates");
+  box.innerHTML = "";
+
+  calcCurrencies.forEach(currency => {
+    const div = document.createElement("div");
+    div.className = "rate-box";
+
+    div.innerHTML = `
+      <label for="calcRate_${currency}">1 ${currency} = TND</label>
+      <input 
+        id="calcRate_${currency}" 
+        type="number" 
+        min="0" 
+        step="0.000001" 
+        value="${calcDefaultRatesToTnd[currency]}"
+      >
+    `;
+
+    box.appendChild(div);
+  });
+
+  document.getElementById("calcRate_TND").readOnly = true;
+}
+
+function resetCalculatorRates() {
+  calcCurrencies.forEach(currency => {
+    document.getElementById("calcRate_" + currency).value = calcDefaultRatesToTnd[currency];
+  });
+}
+
+function calcNum(id) {
+  return Number(document.getElementById(id).value);
+}
+
+function calcRate(currency) {
+  return Number(document.getElementById("calcRate_" + currency).value);
+}
+
+function calcToTnd(value, currency) {
+  return value * calcRate(currency);
+}
+
+function calcFromTnd(valueTnd, currency) {
+  return valueTnd / calcRate(currency);
+}
+
+function calcMoney(value, currency) {
+  const rounded = Math.round((value + Number.EPSILON) * 1000) / 1000;
+  return rounded.toLocaleString("fr-FR") + " " + currency;
+}
+
+function calculateWeightPrice() {
+  const shippingPrice = calcNum("calcShippingPrice");
+  const bagWeight = calcNum("calcBagWeight");
+  const piecePrice = calcNum("calcPiecePrice");
+  const pieceWeight = calcNum("calcPieceWeight");
+
+  const shippingCurrency = document.getElementById("calcShippingCurrency").value;
+  const pieceCurrency = document.getElementById("calcPieceCurrency").value;
+  const outputCurrency = document.getElementById("calcOutputCurrency").value;
+  const unit = document.getElementById("calcUnit").value || "kg";
+
+  const error = document.getElementById("calcError");
+  const result = document.getElementById("calcResult");
+
+  error.style.display = "none";
+  error.textContent = "";
+  result.classList.add("hidden");
+
+  const allNumbers = [
+    shippingPrice,
+    bagWeight,
+    piecePrice,
+    pieceWeight,
+    ...calcCurrencies.map(calcRate)
+  ];
+
+  if (allNumbers.some(value => Number.isNaN(value))) {
+    error.textContent = "Please fill all calculator fields with valid numbers.";
+    error.style.display = "block";
+    return;
+  }
+
+  if (bagWeight <= 0) {
+    error.textContent = "Total bag weight must be greater than 0.";
+    error.style.display = "block";
+    return;
+  }
+
+  if (
+    shippingPrice < 0 ||
+    piecePrice < 0 ||
+    pieceWeight < 0 ||
+    calcCurrencies.some(currency => calcRate(currency) <= 0)
+  ) {
+    error.textContent = "Numbers and exchange rates must be greater than 0.";
+    error.style.display = "block";
+    return;
+  }
+
+  const shippingTnd = calcToTnd(shippingPrice, shippingCurrency);
+  const piecePriceTnd = calcToTnd(piecePrice, pieceCurrency);
+
+  const pricePerUnitTnd = shippingTnd / bagWeight;
+  const pieceShippingTnd = pricePerUnitTnd * pieceWeight;
+  const finalTnd = piecePriceTnd + pieceShippingTnd;
+
+  const pricePerUnitOut = calcFromTnd(pricePerUnitTnd, outputCurrency);
+  const pieceShippingOut = calcFromTnd(pieceShippingTnd, outputCurrency);
+  const piecePriceOut = calcFromTnd(piecePriceTnd, outputCurrency);
+  const finalOut = calcFromTnd(finalTnd, outputCurrency);
+
+  document.getElementById("calcPricePerKg").textContent = calcMoney(pricePerUnitOut, outputCurrency) + " / " + unit;
+  document.getElementById("calcPieceShipping").textContent = calcMoney(pieceShippingOut, outputCurrency);
+  document.getElementById("calcOriginalPrice").textContent = calcMoney(piecePriceOut, outputCurrency);
+  document.getElementById("calcFinalPrice").textContent = calcMoney(finalOut, outputCurrency);
+  document.getElementById("calcFinalTnd").textContent = calcMoney(finalTnd, "TND");
+
+  // Put calculated result into the new Add Product input field
+  document.getElementById("calculatedWeightPrice").value =
+    Math.round((finalOut + Number.EPSILON) * 1000) / 1000;
+
+  // Helpful auto-fill: if product price is empty, fill it with original piece price
+  if (!document.getElementById("price").value) {
+    document.getElementById("price").value = piecePrice;
+  }
+
+  result.classList.remove("hidden");
+
+  Swal.fire("Calculated", "Calculated weight price added to the product form.", "success");
+}
+
+// =====================================================
+// Security helpers for displaying text safely
 // =====================================================
 function escapeHtml(value) {
   if (value === null || value === undefined) return "";
@@ -538,4 +843,8 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value);
 }
