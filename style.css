@@ -172,7 +172,8 @@ body {
   gap: 18px;
 }
 
-.form-group {
+.form-group,
+.calculator-box  {
   display: flex;
   flex-direction: column;
 }
