@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,20 +12,23 @@
 </head>
 <body>
 
+  <button id="languageBtn" class="language-btn">العربية</button>
+
   <!-- Login Page -->
   <section id="loginPage" class="page login-page">
     <div class="login-card">
-      <h1>Inventory Login</h1>
-      <p>Enter your access code to continue</p>
+      <h1 data-i18n="loginTitle">Inventory Login</h1>
+      <p data-i18n="loginSubtitle">Enter your access code to continue</p>
 
-      <input 
-        type="text" 
-        id="codeInput" 
-        placeholder="Enter code" 
+      <input
+        type="text"
+        id="codeInput"
+        data-i18n-placeholder="codePlaceholder"
+        placeholder="Enter code"
         autocomplete="off"
       />
 
-      <button id="loginBtn">Login</button>
+      <button id="loginBtn" data-i18n="loginBtn">Login</button>
     </div>
   </section>
 
@@ -38,22 +41,22 @@
         <p id="userInfo"></p>
       </div>
 
-      <button id="logoutBtn" class="danger-btn">Logout</button>
+      <button id="logoutBtn" class="danger-btn" data-i18n="logout">Logout</button>
     </header>
 
     <!-- Main Admin Dashboard -->
     <main id="mainDashboard" class="hidden dashboard">
 
       <nav class="tabs">
-        <button class="tab-btn active" data-tab="addProductTab">Add Product</button>
-        <button class="tab-btn" data-tab="productsTab">All Products</button>
-        <button class="tab-btn" data-tab="resultsTab">Results</button>
+        <button class="tab-btn active" data-tab="addProductTab" data-i18n="addProductTab">Add Product</button>
+        <button class="tab-btn" data-tab="productsTab" data-i18n="allProductsTab">All Products</button>
+        <button class="tab-btn" data-tab="resultsTab" data-i18n="resultsTab">Results</button>
       </nav>
 
       <!-- Add Product -->
       <section id="addProductTab" class="tab-content active">
         <div class="panel">
-          <h3>Add New Product</h3>
+          <h3 data-i18n="addNewProduct">Add New Product</h3>
 
           <div class="add-product-layout">
 
@@ -61,17 +64,30 @@
             <form id="productForm" class="product-form">
 
               <div class="form-group">
-                <label>Codeabare</label>
+                <label data-i18n="codeabare">Codeabare</label>
                 <input type="text" id="codeabare" required />
               </div>
 
               <div class="form-group">
-                <label>Product Name</label>
+                <label data-i18n="productName">Product Name</label>
                 <input type="text" id="nameproduit" required />
               </div>
 
               <div class="form-group">
-                <label>Matiere</label>
+                <label data-i18n="category">Category</label>
+                <input
+                  type="text"
+                  id="category"
+                  list="categoryList"
+                  data-i18n-placeholder="categoryPlaceholder"
+                  placeholder="Example: gaming, drinks, cables"
+                  required
+                />
+                <datalist id="categoryList"></datalist>
+              </div>
+
+              <div class="form-group">
+                <label data-i18n="matiere">Matiere</label>
                 <select id="matiere" required>
                   <option value="">Select</option>
                   <option value="equide">equide</option>
@@ -80,47 +96,47 @@
               </div>
 
               <div class="form-group">
-                <label>Contiter / Quantity</label>
+                <label data-i18n="quantity">Quantity</label>
                 <input type="number" id="contiter" min="1" required />
               </div>
 
               <div class="form-group">
-                <label>Product Price</label>
+                <label data-i18n="productPrice">Product Price</label>
                 <input type="number" id="price" step="0.001" min="0" required />
               </div>
 
-              <!-- New calculated price field -->
               <div class="form-group">
-                <label>Price Calculated Based on Weight</label>
-                <input 
-                  type="number" 
-                  id="calculatedWeightPrice" 
-                  step="0.001" 
-                  min="0" 
-                  readonly 
+                <label data-i18n="priceByWeight">Price Calculated Based on Weight</label>
+                <input
+                  type="number"
+                  id="priceByWeight"
+                  step="0.001"
+                  min="0"
+                  readonly
+                  data-i18n-placeholder="useCalculator"
                   placeholder="Use calculator"
                 />
               </div>
 
-              <!-- New selling price field -->
               <div class="form-group">
-                <label>Selling Price</label>
-                <input 
-                  type="number" 
-                  id="sellingPrice" 
-                  step="0.001" 
-                  min="0" 
+                <label data-i18n="sellingPrice">Selling Price</label>
+                <input
+                  type="number"
+                  id="sellingPrice"
+                  step="0.001"
+                  min="0"
+                  data-i18n-placeholder="sellingPricePlaceholder"
                   placeholder="Enter final selling price"
                 />
               </div>
 
               <div class="form-group">
-                <label>Image URL or File Name</label>
+                <label data-i18n="image">Image URL or File Name</label>
                 <input type="text" id="image" placeholder="tapie.png or image URL" />
               </div>
 
               <div class="form-group">
-                <label>From</label>
+                <label data-i18n="from">From</label>
                 <div class="inline-input">
                   <select id="fromSelect" required></select>
                   <button type="button" id="addSourceBtn">+</button>
@@ -128,120 +144,85 @@
               </div>
 
               <div class="form-group">
-                <label>Weidth</label>
+                <label data-i18n="weidth">Weidth</label>
                 <input type="text" id="weidth" placeholder="200g" />
               </div>
 
               <div class="form-group">
-                <label>To</label>
+                <label data-i18n="to">To</label>
                 <select id="toSelect" required></select>
               </div>
 
-              <button type="submit" class="primary-btn">Add Product</button>
+              <button type="submit" class="primary-btn" data-i18n="addProductBtn">Add Product</button>
             </form>
 
-            <!-- Integrated calculator from calculateur prix piece devises -->
-            <div class="calculator-box">
-              <h3>Weight Price Calculator</h3>
-              <p class="muted">
-                Calculate product cost using shipping price, bag weight, product price, product weight, and currencies.
-              </p>
+            <!-- New attached calculator integrated into Add Product -->
+            <section class="calculator-card">
+              <h1>حاسبة ثمن القطعة حسب الوزن + تحويل العملات</h1>
+              <p>حط ثمن الشحن/الحقيبة، وزن الحقيبة، ثمن القطعة ووزنها. تنجم تختار عملة الشحن، عملة القطعة، وعملة النتيجة. بدّل taux متاع الصرف كيما تحب.</p>
 
-              <div class="calc-grid3">
+              <div class="grid3">
                 <div>
-                  <label for="calcShippingPrice">Shipping / Bag Price</label>
-                  <input id="calcShippingPrice" type="number" min="0" step="0.001" placeholder="Example: 300" />
+                  <label for="shippingPrice">ثمن شحن الحقيبة / التذكرة</label>
+                  <input id="shippingPrice" type="number" min="0" step="0.001" placeholder="مثال: 300" />
                 </div>
-
                 <div>
-                  <label for="calcShippingCurrency">Shipping Currency</label>
-                  <select id="calcShippingCurrency"></select>
+                  <label for="shippingCurrency">عملة الشحن</label>
+                  <select id="shippingCurrency"></select>
                 </div>
-
                 <div>
-                  <label for="calcBagWeight">Total Bag Weight</label>
-                  <input id="calcBagWeight" type="number" min="0" step="0.001" placeholder="Example: 23" />
+                  <label for="bagWeight">ميزان الحقيبة الكلّي</label>
+                  <input id="bagWeight" type="number" min="0" step="0.001" placeholder="مثال: 23" />
                 </div>
               </div>
 
-              <div class="calc-grid3">
+              <div class="grid3">
                 <div>
-                  <label for="calcPiecePrice">Original Piece Price</label>
-                  <input id="calcPiecePrice" type="number" min="0" step="0.001" placeholder="Example: 50" />
+                  <label for="piecePrice">ثمن القطعة الأصلي</label>
+                  <input id="piecePrice" type="number" min="0" step="0.001" placeholder="مثال: 50" />
                 </div>
-
                 <div>
-                  <label for="calcPieceCurrency">Piece Currency</label>
-                  <select id="calcPieceCurrency"></select>
+                  <label for="pieceCurrency">عملة القطعة</label>
+                  <select id="pieceCurrency"></select>
                 </div>
-
                 <div>
-                  <label for="calcPieceWeight">Piece Weight</label>
-                  <input id="calcPieceWeight" type="number" min="0" step="0.001" placeholder="Example: 2" />
+                  <label for="pieceWeight">ميزان القطعة</label>
+                  <input id="pieceWeight" type="number" min="0" step="0.001" placeholder="مثال: 2" />
                 </div>
               </div>
 
-              <div class="calc-grid">
+              <div class="grid">
                 <div>
-                  <label for="calcOutputCurrency">Output Currency</label>
-                  <select id="calcOutputCurrency"></select>
+                  <label for="outputCurrency">تحب النتيجة بأي عملة؟</label>
+                  <select id="outputCurrency"></select>
                 </div>
-
                 <div>
-                  <label for="calcUnit">Weight Unit</label>
-                  <select id="calcUnit">
+                  <label for="unit">وحدة الوزن</label>
+                  <select id="unit">
                     <option value="kg">kg</option>
                     <option value="g">g</option>
                   </select>
                 </div>
               </div>
 
-              <h4>Exchange Rates</h4>
-              <p class="muted">
-                Meaning: 1 currency unit = how much in TND. You can edit rates.
-              </p>
+              <h2>أسعار الصرف</h2>
+              <p class="muted">المعنى: 1 من العملة = قداش بالدينار التونسي TND. القيم أمثلة، بدّلهم حسب taux اللي عندك اليوم.</p>
+              <div id="rates" class="rates"></div>
+              <button type="button" class="smallBtn" onclick="resetRates()">رجّع أمثلة أسعار الصرف</button>
 
-              <div id="calcRates" class="calc-rates"></div>
+              <button type="button" onclick="calculate()">احسب</button>
+              <div id="error" class="error"></div>
 
-              <button type="button" id="resetCalcRatesBtn" class="secondary-btn">
-                Reset Example Rates
-              </button>
-
-              <button type="button" id="calculatePriceBtn" class="primary-btn">
-                Calculate
-              </button>
-
-              <div id="calcError" class="calc-error"></div>
-
-              <div id="calcResult" class="calc-result hidden">
-                <h4>Result</h4>
-
-                <div class="calc-line">
-                  <span>Price per weight unit</span>
-                  <strong id="calcPricePerKg"></strong>
-                </div>
-
-                <div class="calc-line">
-                  <span>Piece shipping cost</span>
-                  <strong id="calcPieceShipping"></strong>
-                </div>
-
-                <div class="calc-line">
-                  <span>Original price after conversion</span>
-                  <strong id="calcOriginalPrice"></strong>
-                </div>
-
-                <div class="calc-line">
-                  <span>Final calculated price</span>
-                  <strong id="calcFinalPrice"></strong>
-                </div>
-
-                <div class="calc-line">
-                  <span>Final in TND</span>
-                  <strong id="calcFinalTnd"></strong>
-                </div>
+              <div id="result" class="result">
+                <h2>النتيجة</h2>
+                <div class="line"><span>ثمن وحدة الوزن</span><span id="pricePerKg" class="value"></span></div>
+                <div class="line"><span>نصيب القطعة من كلفة الشحن</span><span id="pieceShipping" class="value"></span></div>
+                <div class="line"><span>ثمن القطعة الأصلي بعد التحويل</span><span id="originalPrice" class="value"></span></div>
+                <div class="line"><span>ثمن القطعة في الآخر</span><span id="finalPrice" class="value"></span></div>
+                <div class="line"><span>بالدينار التونسي TND</span><span id="finalTnd" class="value"></span></div>
+                <div class="note">القانون: ثمن القطعة النهائي = ثمن القطعة الأصلي + ((ثمن الشحن ÷ وزن الحقيبة) × وزن القطعة). التطبيق يحوّل كل شي عبر TND حسب أسعار الصرف اللي دخلتهم.</div>
               </div>
-            </div>
+            </section>
 
           </div>
         </div>
@@ -250,31 +231,42 @@
       <!-- Products -->
       <section id="productsTab" class="tab-content">
         <div class="panel">
-          <h3>Filters</h3>
+          <h3 data-i18n="searchTitle">Search / Recherch</h3>
 
           <div class="filters">
+            <input
+              type="text"
+              id="searchInput"
+              data-i18n-placeholder="searchPlaceholder"
+              placeholder="Search by name, code, category..."
+            />
+
+            <select id="filterCategory">
+              <option value="" data-i18n="allCategories">All Categories</option>
+            </select>
+
             <select id="filterMatiere">
-              <option value="">All Matiere</option>
+              <option value="" data-i18n="allMatiere">All Matiere</option>
               <option value="equide">equide</option>
               <option value="solide">solide</option>
             </select>
 
             <select id="filterFrom">
-              <option value="">All Sources</option>
+              <option value="" data-i18n="allSources">All Sources</option>
             </select>
 
             <select id="filterTo">
-              <option value="">All Users</option>
+              <option value="" data-i18n="allUsers">All Users</option>
             </select>
 
-            <button id="clearFiltersBtn">Clear Filters</button>
+            <button id="clearFiltersBtn" data-i18n="clearFilters">Clear Filters</button>
           </div>
         </div>
 
         <div class="panel">
           <div class="section-header">
-            <h3>All Products</h3>
-            <button id="refreshProductsBtn">Refresh</button>
+            <h3 data-i18n="allProducts">All Products</h3>
+            <button id="refreshProductsBtn" data-i18n="refresh">Refresh</button>
           </div>
 
           <div id="productsGrid" class="products-grid"></div>
@@ -285,19 +277,19 @@
       <section id="resultsTab" class="tab-content">
         <div class="panel">
           <div class="section-header">
-            <h3>Result Transactions</h3>
-            <button id="refreshResultsBtn">Refresh</button>
+            <h3 data-i18n="resultTransactions">Result Transactions</h3>
+            <button id="refreshResultsBtn" data-i18n="refresh">Refresh</button>
           </div>
 
           <div class="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Codeabare</th>
-                  <th>Product</th>
-                  <th>Price</th>
-                  <th>To</th>
+                  <th data-i18n="date">Date</th>
+                  <th data-i18n="codeabare">Codeabare</th>
+                  <th data-i18n="productName">Product</th>
+                  <th data-i18n="price">Price</th>
+                  <th data-i18n="to">To</th>
                 </tr>
               </thead>
               <tbody id="resultsTableBody"></tbody>
@@ -311,8 +303,8 @@
     <main id="userDashboard" class="hidden dashboard">
       <div class="panel">
         <div class="section-header">
-          <h3>My Products</h3>
-          <button id="refreshUserProductsBtn">Refresh</button>
+          <h3 data-i18n="myProducts">My Products</h3>
+          <button id="refreshUserProductsBtn" data-i18n="refresh">Refresh</button>
         </div>
 
         <div id="userProductsGrid" class="products-grid"></div>

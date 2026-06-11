@@ -1,15 +1,15 @@
 // =====================================================
 // Put your Google Apps Script Web App URL here
-// Example:
-// const API_URL = "https://script.google.com/macros/s/XXXXXXX/exec";
 // =====================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz6kmEtVTUS4twuZQzTk-hKRbvnjmrTLvcnb4JzriiQG3atu8xhnPJ1nIaknrOuVvQVKA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw9yIW8gopyX9cADp4_psmhvt-pm74zmFeb_EJdd9nktJJvajsTaQyZhiK2Am3ZWcwWIg/exec";
 
 // Global data
 let currentUser = null;
 let allProducts = [];
 let codes = [];
 let sources = [];
+let categories = [];
+let currentLanguage = localStorage.getItem("inventoryLanguage") || "en";
 
 // Elements
 const loginPage = document.getElementById("loginPage");
@@ -20,6 +20,7 @@ const userDashboard = document.getElementById("userDashboard");
 const codeInput = document.getElementById("codeInput");
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
+const languageBtn = document.getElementById("languageBtn");
 
 const dashboardTitle = document.getElementById("dashboardTitle");
 const userInfo = document.getElementById("userInfo");
@@ -31,11 +32,212 @@ const userProductsGrid = document.getElementById("userProductsGrid");
 const fromSelect = document.getElementById("fromSelect");
 const toSelect = document.getElementById("toSelect");
 
+const searchInput = document.getElementById("searchInput");
+const filterCategory = document.getElementById("filterCategory");
 const filterMatiere = document.getElementById("filterMatiere");
 const filterFrom = document.getElementById("filterFrom");
 const filterTo = document.getElementById("filterTo");
 
+const categoryList = document.getElementById("categoryList");
 const resultsTableBody = document.getElementById("resultsTableBody");
+
+// =====================================================
+// Translations
+// =====================================================
+const translations = {
+  en: {
+    languageBtn: "العربية",
+    loginTitle: "Inventory Login",
+    loginSubtitle: "Enter your access code to continue",
+    codePlaceholder: "Enter code",
+    loginBtn: "Login",
+    logout: "Logout",
+    mainDashboard: "Main Dashboard",
+    userDashboard: "User Dashboard",
+    loggedInAs: "Logged in as",
+    addProductTab: "Add Product",
+    allProductsTab: "All Products",
+    resultsTab: "Results",
+    addNewProduct: "Add New Product",
+    codeabare: "Codeabare",
+    productName: "Product Name",
+    category: "Category",
+    categoryPlaceholder: "Example: gaming, drinks, cables",
+    matiere: "Matiere",
+    quantity: "Quantity",
+    productPrice: "Product Price",
+    price: "Price",
+    priceByWeight: "Price Calculated Based on Weight",
+    useCalculator: "Use calculator",
+    sellingPrice: "Selling Price",
+    sellingPricePlaceholder: "Enter final selling price",
+    image: "Image",
+    from: "From",
+    weidth: "Weidth",
+    to: "To",
+    addProductBtn: "Add Product",
+    searchTitle: "Search / Recherch",
+    searchPlaceholder: "Search by name, code, category...",
+    allCategories: "All Categories",
+    allMatiere: "All Matiere",
+    allSources: "All Sources",
+    allUsers: "All Users",
+    clearFilters: "Clear Filters",
+    allProducts: "All Products",
+    refresh: "Refresh",
+    resultTransactions: "Result Transactions",
+    date: "Date",
+    myProducts: "My Products",
+    editProduct: "Edit Product",
+    receiveProduct: "Receive Product",
+    confirm: "Confirm",
+    noProducts: "No products found.",
+    noAssignedProducts: "No assigned products found.",
+    noResults: "No results found.",
+    missingCode: "Missing Code",
+    enterCode: "Please enter your access code.",
+    welcome: "Welcome",
+    missingData: "Missing Data",
+    completeFields: "Please complete all required fields.",
+    success: "Success",
+    productAdded: "Product added successfully.",
+    updated: "Updated",
+    productUpdated: "Product updated successfully.",
+    receiveStockTitle: "Receive Product",
+    receivedQtyLabel: "Enter received quantity",
+    validQty: "Please enter a valid quantity greater than 0",
+    stockIncreased: "Stock quantity increased.",
+    receiveQuestion: "Receive Product?",
+    finalSellingPrice: "Final Selling Price",
+    enterFinalPrice: "Enter the real/final selling price",
+    validPrice: "Please enter a valid price",
+    productReceivedSaved: "Product received and result saved.",
+    calculated: "Calculated",
+    calculatedAdded: "Calculated weight price added to the product form.",
+    addSourceTitle: "Add New Source",
+    sourceName: "Source name",
+    sourceExample: "Example: souk",
+    enterSource: "Please enter a source name",
+    saveUpdate: "Save / Update",
+    cancel: "Cancel"
+  },
+  ar: {
+    languageBtn: "English",
+    loginTitle: "تسجيل الدخول للمخزون",
+    loginSubtitle: "أدخل كود الدخول للمتابعة",
+    codePlaceholder: "أدخل الكود",
+    loginBtn: "دخول",
+    logout: "تسجيل الخروج",
+    mainDashboard: "لوحة التحكم الرئيسية",
+    userDashboard: "لوحة المستخدم",
+    loggedInAs: "تم الدخول باسم",
+    addProductTab: "إضافة منتج",
+    allProductsTab: "كل المنتجات",
+    resultsTab: "النتائج",
+    addNewProduct: "إضافة منتج جديد",
+    codeabare: "كود البار",
+    productName: "اسم المنتج",
+    category: "الصنف",
+    categoryPlaceholder: "مثال: ألعاب، مشروبات، كابلات",
+    matiere: "المادة",
+    quantity: "الكمية",
+    productPrice: "سعر المنتج",
+    price: "السعر",
+    priceByWeight: "السعر المحسوب حسب الوزن",
+    useCalculator: "استعمل الحاسبة",
+    sellingPrice: "سعر البيع",
+    sellingPricePlaceholder: "أدخل سعر البيع النهائي",
+    image: "الصورة",
+    from: "المصدر",
+    weidth: "الوزن",
+    to: "إلى",
+    addProductBtn: "إضافة المنتج",
+    searchTitle: "بحث",
+    searchPlaceholder: "ابحث بالاسم، الكود، الصنف...",
+    allCategories: "كل الأصناف",
+    allMatiere: "كل المواد",
+    allSources: "كل المصادر",
+    allUsers: "كل المستخدمين",
+    clearFilters: "مسح الفلاتر",
+    allProducts: "كل المنتجات",
+    refresh: "تحديث",
+    resultTransactions: "عمليات البيع",
+    date: "التاريخ",
+    myProducts: "منتجاتي",
+    editProduct: "تعديل المنتج",
+    receiveProduct: "استلام منتج",
+    confirm: "تأكيد",
+    noProducts: "لا توجد منتجات.",
+    noAssignedProducts: "لا توجد منتجات مخصصة لك.",
+    noResults: "لا توجد نتائج.",
+    missingCode: "الكود غير موجود",
+    enterCode: "يرجى إدخال كود الدخول.",
+    welcome: "مرحبا",
+    missingData: "بيانات ناقصة",
+    completeFields: "يرجى إكمال كل الحقول المطلوبة.",
+    success: "تم بنجاح",
+    productAdded: "تمت إضافة المنتج بنجاح.",
+    updated: "تم التحديث",
+    productUpdated: "تم تحديث المنتج بنجاح.",
+    receiveStockTitle: "استلام منتج",
+    receivedQtyLabel: "أدخل الكمية المستلمة",
+    validQty: "يرجى إدخال كمية صحيحة أكبر من 0",
+    stockIncreased: "تمت زيادة كمية المخزون.",
+    receiveQuestion: "تأكيد استلام المنتج؟",
+    finalSellingPrice: "سعر البيع النهائي",
+    enterFinalPrice: "أدخل سعر البيع الحقيقي/النهائي",
+    validPrice: "يرجى إدخال سعر صحيح",
+    productReceivedSaved: "تم تأكيد المنتج وتسجيل العملية.",
+    calculated: "تم الحساب",
+    calculatedAdded: "تمت إضافة السعر المحسوب إلى فورم المنتج.",
+    addSourceTitle: "إضافة مصدر جديد",
+    sourceName: "اسم المصدر",
+    sourceExample: "مثال: souk",
+    enterSource: "يرجى إدخال اسم المصدر",
+    saveUpdate: "حفظ / تحديث",
+    cancel: "إلغاء"
+  }
+};
+
+function t(key) {
+  return translations[currentLanguage][key] || translations.en[key] || key;
+}
+
+function applyLanguage() {
+  document.documentElement.lang = currentLanguage;
+  document.documentElement.dir = currentLanguage === "ar" ? "rtl" : "ltr";
+
+  languageBtn.textContent = t("languageBtn");
+
+  document.querySelectorAll("[data-i18n]").forEach(element => {
+    element.textContent = t(element.dataset.i18n);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
+    element.placeholder = t(element.dataset.i18nPlaceholder);
+  });
+
+  updateDashboardText();
+
+  if (allProducts.length) {
+    applyFilters();
+  }
+}
+
+function updateDashboardText() {
+  if (!currentUser) return;
+
+  dashboardTitle.textContent =
+    currentUser.name === "main" ? t("mainDashboard") : t("userDashboard");
+
+  userInfo.textContent = `${t("loggedInAs")}: ${currentUser.name}`;
+}
+
+languageBtn.addEventListener("click", function () {
+  currentLanguage = currentLanguage === "en" ? "ar" : "en";
+  localStorage.setItem("inventoryLanguage", currentLanguage);
+  applyLanguage();
+});
 
 // =====================================================
 // API helper
@@ -78,7 +280,7 @@ async function login() {
   const code = codeInput.value.trim();
 
   if (!code) {
-    Swal.fire("Missing Code", "Please enter your access code.", "warning");
+    Swal.fire(t("missingCode"), t("enterCode"), "warning");
     return;
   }
 
@@ -87,20 +289,19 @@ async function login() {
 
   try {
     const result = await apiRequest("checkCode", { code });
-
     const user = result.user;
 
     localStorage.setItem("inventoryUser", JSON.stringify(user));
     currentUser = user;
 
-    Swal.fire("Welcome", `Logged in as ${user.name}`, "success");
+    Swal.fire(t("welcome"), `${t("loggedInAs")}: ${user.name}`, "success");
 
     await openDashboard();
   } catch (error) {
     localStorage.removeItem("inventoryUser");
   } finally {
     loginBtn.disabled = false;
-    loginBtn.textContent = "Login";
+    loginBtn.textContent = t("loginBtn");
   }
 }
 
@@ -113,23 +314,19 @@ async function openDashboard() {
   loginPage.classList.add("hidden");
   dashboardPage.classList.remove("hidden");
 
-  dashboardTitle.textContent = currentUser.name === "main"
-    ? "Main Dashboard"
-    : "User Dashboard";
-
-  userInfo.textContent = `Logged in as: ${currentUser.name}`;
+  updateDashboardText();
 
   if (currentUser.name === "main") {
     mainDashboard.classList.remove("hidden");
     userDashboard.classList.add("hidden");
-
     await loadAdminData();
   } else {
     mainDashboard.classList.add("hidden");
     userDashboard.classList.remove("hidden");
-
     await loadUserProducts();
   }
+
+  applyLanguage();
 }
 
 logoutBtn.addEventListener("click", function () {
@@ -139,7 +336,9 @@ logoutBtn.addEventListener("click", function () {
 });
 
 window.addEventListener("load", async function () {
-  initializeCalculator();
+  applyLanguage();
+  fillCurrencies();
+  buildRates();
 
   const savedUser = localStorage.getItem("inventoryUser");
 
@@ -169,6 +368,7 @@ async function loadAdminData() {
   await Promise.all([
     loadCodes(),
     loadSources(),
+    loadCategories(),
     loadAllProducts(),
     loadResults()
   ]);
@@ -186,6 +386,11 @@ async function loadSources() {
   sources = result.sources || [];
 }
 
+async function loadCategories() {
+  const result = await apiRequest("getCategories");
+  categories = result.categories || [];
+}
+
 async function loadAllProducts() {
   const result = await apiRequest("getProducts");
   allProducts = result.products || [];
@@ -199,16 +404,16 @@ async function loadResults() {
 }
 
 function fillSelects() {
-  fromSelect.innerHTML = `<option value="">Select source</option>`;
-  filterFrom.innerHTML = `<option value="">All Sources</option>`;
+  fromSelect.innerHTML = `<option value="">${t("allSources")}</option>`;
+  filterFrom.innerHTML = `<option value="">${t("allSources")}</option>`;
 
   sources.forEach(source => {
     fromSelect.innerHTML += `<option value="${escapeAttr(source)}">${escapeHtml(source)}</option>`;
     filterFrom.innerHTML += `<option value="${escapeAttr(source)}">${escapeHtml(source)}</option>`;
   });
 
-  toSelect.innerHTML = `<option value="">Select user</option>`;
-  filterTo.innerHTML = `<option value="">All Users</option>`;
+  toSelect.innerHTML = `<option value="">${t("allUsers")}</option>`;
+  filterTo.innerHTML = `<option value="">${t("allUsers")}</option>`;
 
   codes
     .filter(item => item.name !== "main")
@@ -216,19 +421,25 @@ function fillSelects() {
       toSelect.innerHTML += `<option value="${escapeAttr(item.name)}">${escapeHtml(item.name)}</option>`;
       filterTo.innerHTML += `<option value="${escapeAttr(item.name)}">${escapeHtml(item.name)}</option>`;
     });
+
+  filterCategory.innerHTML = `<option value="">${t("allCategories")}</option>`;
+  categoryList.innerHTML = "";
+
+  categories.forEach(category => {
+    filterCategory.innerHTML += `<option value="${escapeAttr(category)}">${escapeHtml(category)}</option>`;
+    categoryList.innerHTML += `<option value="${escapeAttr(category)}"></option>`;
+  });
 }
 
-// Add custom source directly into the select.
-// It becomes permanent after a product using it is saved.
 document.getElementById("addSourceBtn").addEventListener("click", async function () {
   const { value } = await Swal.fire({
-    title: "Add New Source",
+    title: t("addSourceTitle"),
     input: "text",
-    inputLabel: "Source name",
-    inputPlaceholder: "Example: souk",
+    inputLabel: t("sourceName"),
+    inputPlaceholder: t("sourceExample"),
     showCancelButton: true,
     inputValidator: value => {
-      if (!value) return "Please enter a source name";
+      if (!value) return t("enterSource");
     }
   });
 
@@ -246,9 +457,7 @@ document.getElementById("addSourceBtn").addEventListener("click", async function
 
 // =====================================================
 // Add product
-// New fields added:
-// calculatedWeightPrice
-// sellingPrice
+// Includes: category, priceByWeight, sellingPrice
 // =====================================================
 productForm.addEventListener("submit", async function (event) {
   event.preventDefault();
@@ -256,10 +465,11 @@ productForm.addEventListener("submit", async function (event) {
   const product = {
     codeabare: document.getElementById("codeabare").value.trim(),
     nameproduit: document.getElementById("nameproduit").value.trim(),
+    category: document.getElementById("category").value.trim(),
     matiere: document.getElementById("matiere").value,
     contiter: Number(document.getElementById("contiter").value),
     price: Number(document.getElementById("price").value),
-    calculatedWeightPrice: Number(document.getElementById("calculatedWeightPrice").value || 0),
+    priceByWeight: Number(document.getElementById("priceByWeight").value || 0),
     sellingPrice: Number(document.getElementById("sellingPrice").value || 0),
     image: document.getElementById("image").value.trim(),
     from: fromSelect.value,
@@ -267,21 +477,30 @@ productForm.addEventListener("submit", async function (event) {
     to: toSelect.value
   };
 
-  if (!product.codeabare || !product.nameproduit || !product.matiere || !product.contiter || !product.from || !product.to) {
-    Swal.fire("Missing Data", "Please complete all required fields.", "warning");
+  if (
+    !product.codeabare ||
+    !product.nameproduit ||
+    !product.category ||
+    !product.matiere ||
+    !product.contiter ||
+    !product.from ||
+    !product.to
+  ) {
+    Swal.fire(t("missingData"), t("completeFields"), "warning");
     return;
   }
 
   await apiRequest("addProduct", { product });
 
-  Swal.fire("Success", "Product added successfully.", "success");
+  Swal.fire(t("success"), t("productAdded"), "success");
 
   productForm.reset();
-  document.getElementById("calculatedWeightPrice").value = "";
+  document.getElementById("priceByWeight").value = "";
   document.getElementById("sellingPrice").value = "";
-  document.getElementById("calcResult").classList.add("hidden");
+  document.getElementById("result").style.display = "none";
 
   await loadSources();
+  await loadCategories();
   await loadAllProducts();
   fillSelects();
 });
@@ -293,7 +512,7 @@ function renderAdminProducts(products) {
   productsGrid.innerHTML = "";
 
   if (!products.length) {
-    productsGrid.innerHTML = `<p>No products found.</p>`;
+    productsGrid.innerHTML = `<p>${t("noProducts")}</p>`;
     return;
   }
 
@@ -307,7 +526,7 @@ function renderUserProducts(products) {
   userProductsGrid.innerHTML = "";
 
   if (!products.length) {
-    userProductsGrid.innerHTML = `<p>No assigned products found.</p>`;
+    userProductsGrid.innerHTML = `<p>${t("noAssignedProducts")}</p>`;
     return;
   }
 
@@ -333,25 +552,26 @@ function createProductCard(product, isAdmin) {
     <div class="product-body">
       <h4>${escapeHtml(product.nameproduit)}</h4>
 
-      <p><strong>Codeabare:</strong> ${escapeHtml(product.codeabare)}</p>
-      <p><strong>Matiere:</strong> ${escapeHtml(product.matiere)}</p>
-      <p><strong>Quantity:</strong> ${escapeHtml(product.contiter)}</p>
-      <p><strong>Product Price:</strong> ${escapeHtml(product.price)}</p>
-      <p><strong>Calculated Weight Price:</strong> ${escapeHtml(product.calculatedWeightPrice)}</p>
-      <p><strong>Selling Price:</strong> ${escapeHtml(product.sellingPrice)}</p>
-      <p><strong>Image:</strong> ${escapeHtml(product.image)}</p>
-      <p><strong>From:</strong> ${escapeHtml(product.from)}</p>
-      <p><strong>Weidth:</strong> ${escapeHtml(product.weidth)}</p>
-      <p><strong>To:</strong> ${escapeHtml(product.to)}</p>
+      <p><strong>${t("codeabare")}:</strong> ${escapeHtml(product.codeabare)}</p>
+      <p><strong>${t("category")}:</strong> ${escapeHtml(product.category)}</p>
+      <p><strong>${t("matiere")}:</strong> ${escapeHtml(product.matiere)}</p>
+      <p><strong>${t("quantity")}:</strong> ${escapeHtml(product.contiter)}</p>
+      <p><strong>${t("productPrice")}:</strong> ${escapeHtml(product.price)}</p>
+      <p><strong>${t("priceByWeight")}:</strong> ${escapeHtml(product.priceByWeight)}</p>
+      <p><strong>${t("sellingPrice")}:</strong> ${escapeHtml(product.sellingPrice)}</p>
+      <p><strong>${t("image")}:</strong> ${escapeHtml(product.image)}</p>
+      <p><strong>${t("from")}:</strong> ${escapeHtml(product.from)}</p>
+      <p><strong>${t("weidth")}:</strong> ${escapeHtml(product.weidth)}</p>
+      <p><strong>${t("to")}:</strong> ${escapeHtml(product.to)}</p>
 
       <div class="card-actions">
         ${
           isAdmin
             ? `
-              <button class="edit-btn">Edit Product</button>
-              <button class="receive-btn">Receive Product</button>
+              <button class="edit-btn">${t("editProduct")}</button>
+              <button class="receive-btn">${t("receiveProduct")}</button>
             `
-            : `<button class="confirm-btn">Confirm</button>`
+            : `<button class="confirm-btn">${t("confirm")}</button>`
         }
       </div>
     </div>
@@ -375,8 +595,8 @@ function createProductCard(product, isAdmin) {
 }
 
 // =====================================================
-// Edit product functionality
-// Allows admin to update all product data
+// Edit product
+// Includes category, priceByWeight, sellingPrice
 // =====================================================
 async function editProduct(product) {
   const userOptions = codes
@@ -397,17 +617,22 @@ async function editProduct(product) {
   const html = `
     <div class="edit-product-grid">
       <div>
-        <label>Codeabare</label>
+        <label>${t("codeabare")}</label>
         <input id="editCodeabare" value="${escapeAttr(product.codeabare)}">
       </div>
 
       <div>
-        <label>Product Name</label>
+        <label>${t("productName")}</label>
         <input id="editNameproduit" value="${escapeAttr(product.nameproduit)}">
       </div>
 
       <div>
-        <label>Matiere</label>
+        <label>${t("category")}</label>
+        <input id="editCategory" value="${escapeAttr(product.category)}">
+      </div>
+
+      <div>
+        <label>${t("matiere")}</label>
         <select id="editMatiere">
           <option value="equide" ${product.matiere === "equide" ? "selected" : ""}>equide</option>
           <option value="solide" ${product.matiere === "solide" ? "selected" : ""}>solide</option>
@@ -415,62 +640,64 @@ async function editProduct(product) {
       </div>
 
       <div>
-        <label>Quantity</label>
+        <label>${t("quantity")}</label>
         <input id="editContiter" type="number" min="0" value="${escapeAttr(product.contiter)}">
       </div>
 
       <div>
-        <label>Product Price</label>
+        <label>${t("productPrice")}</label>
         <input id="editPrice" type="number" step="0.001" min="0" value="${escapeAttr(product.price)}">
       </div>
 
       <div>
-        <label>Calculated Weight Price</label>
-        <input id="editCalculatedWeightPrice" type="number" step="0.001" min="0" value="${escapeAttr(product.calculatedWeightPrice)}">
+        <label>${t("priceByWeight")}</label>
+        <input id="editPriceByWeight" type="number" step="0.001" min="0" value="${escapeAttr(product.priceByWeight)}">
       </div>
 
       <div>
-        <label>Selling Price</label>
+        <label>${t("sellingPrice")}</label>
         <input id="editSellingPrice" type="number" step="0.001" min="0" value="${escapeAttr(product.sellingPrice)}">
       </div>
 
       <div>
-        <label>Image</label>
+        <label>${t("image")}</label>
         <input id="editImage" value="${escapeAttr(product.image)}">
       </div>
 
       <div>
-        <label>From</label>
+        <label>${t("from")}</label>
         <select id="editFrom">${sourceOptions}</select>
       </div>
 
       <div>
-        <label>Weidth</label>
+        <label>${t("weidth")}</label>
         <input id="editWeidth" value="${escapeAttr(product.weidth)}">
       </div>
 
       <div>
-        <label>To</label>
+        <label>${t("to")}</label>
         <select id="editTo">${userOptions}</select>
       </div>
     </div>
   `;
 
   const result = await Swal.fire({
-    title: "Edit Product",
+    title: t("editProduct"),
     html,
     width: 850,
     showCancelButton: true,
-    confirmButtonText: "Save / Update",
+    confirmButtonText: t("saveUpdate"),
+    cancelButtonText: t("cancel"),
     preConfirm: () => {
       const updatedProduct = {
         oldCodeabare: product.codeabare,
         codeabare: document.getElementById("editCodeabare").value.trim(),
         nameproduit: document.getElementById("editNameproduit").value.trim(),
+        category: document.getElementById("editCategory").value.trim(),
         matiere: document.getElementById("editMatiere").value,
         contiter: Number(document.getElementById("editContiter").value),
         price: Number(document.getElementById("editPrice").value || 0),
-        calculatedWeightPrice: Number(document.getElementById("editCalculatedWeightPrice").value || 0),
+        priceByWeight: Number(document.getElementById("editPriceByWeight").value || 0),
         sellingPrice: Number(document.getElementById("editSellingPrice").value || 0),
         image: document.getElementById("editImage").value.trim(),
         from: document.getElementById("editFrom").value,
@@ -478,8 +705,16 @@ async function editProduct(product) {
         to: document.getElementById("editTo").value
       };
 
-      if (!updatedProduct.codeabare || !updatedProduct.nameproduit || !updatedProduct.matiere || updatedProduct.contiter < 0 || !updatedProduct.from || !updatedProduct.to) {
-        Swal.showValidationMessage("Please complete all required fields.");
+      if (
+        !updatedProduct.codeabare ||
+        !updatedProduct.nameproduit ||
+        !updatedProduct.category ||
+        !updatedProduct.matiere ||
+        updatedProduct.contiter < 0 ||
+        !updatedProduct.from ||
+        !updatedProduct.to
+      ) {
+        Swal.showValidationMessage(t("completeFields"));
         return false;
       }
 
@@ -493,22 +728,22 @@ async function editProduct(product) {
     product: result.value
   });
 
-  Swal.fire("Updated", "Product updated successfully.", "success");
+  Swal.fire(t("updated"), t("productUpdated"), "success");
 
   await loadSources();
+  await loadCategories();
   await loadAllProducts();
   fillSelects();
 }
 
 // =====================================================
-// Receive Product for admin
-// This increases stock quantity instead of removing it
+// Admin Receive Product: increases stock quantity
 // =====================================================
 async function receiveStock(product) {
   const { value: quantity } = await Swal.fire({
-    title: "Receive Product",
+    title: t("receiveStockTitle"),
     input: "number",
-    inputLabel: `Enter received quantity for ${product.nameproduit}`,
+    inputLabel: `${t("receivedQtyLabel")} - ${product.nameproduit}`,
     inputPlaceholder: "Example: 5",
     showCancelButton: true,
     inputAttributes: {
@@ -517,7 +752,7 @@ async function receiveStock(product) {
     },
     inputValidator: value => {
       if (!value || Number(value) <= 0) {
-        return "Please enter a valid quantity greater than 0";
+        return t("validQty");
       }
     }
   });
@@ -529,14 +764,13 @@ async function receiveStock(product) {
     quantity: Number(quantity)
   });
 
-  Swal.fire("Success", "Stock quantity increased.", "success");
+  Swal.fire(t("success"), t("stockIncreased"), "success");
 
   await loadAllProducts();
 }
 
 // =====================================================
 // User dashboard
-// Normal user confirm still decreases quantity and adds Result row
 // =====================================================
 async function loadUserProducts() {
   const result = await apiRequest("getProductsByUser", {
@@ -548,19 +782,20 @@ async function loadUserProducts() {
 
 async function userReceiveProduct(product) {
   const confirm = await Swal.fire({
-    title: "Receive Product?",
-    text: `Confirm receiving ${product.nameproduit}?`,
+    title: t("receiveQuestion"),
+    text: `${product.nameproduit}`,
     icon: "question",
     showCancelButton: true,
-    confirmButtonText: "Yes"
+    confirmButtonText: t("confirm"),
+    cancelButtonText: t("cancel")
   });
 
   if (!confirm.isConfirmed) return;
 
   const { value: finalPrice } = await Swal.fire({
-    title: "Final Selling Price",
+    title: t("finalSellingPrice"),
     input: "number",
-    inputLabel: "Enter the real/final selling price",
+    inputLabel: t("enterFinalPrice"),
     inputPlaceholder: product.sellingPrice || "Example: 20",
     showCancelButton: true,
     inputAttributes: {
@@ -570,7 +805,7 @@ async function userReceiveProduct(product) {
     inputValue: product.sellingPrice || "",
     inputValidator: value => {
       if (!value || Number(value) < 0) {
-        return "Please enter a valid price";
+        return t("validPrice");
       }
     }
   });
@@ -583,19 +818,24 @@ async function userReceiveProduct(product) {
     to: currentUser.name
   });
 
-  Swal.fire("Success", "Product received and result saved.", "success");
+  Swal.fire(t("success"), t("productReceivedSaved"), "success");
 
   await loadUserProducts();
 }
 
 // =====================================================
-// Filters
+// Search / filters
+// Includes category search and category filter
 // =====================================================
+searchInput.addEventListener("input", applyFilters);
+filterCategory.addEventListener("change", applyFilters);
 filterMatiere.addEventListener("change", applyFilters);
 filterFrom.addEventListener("change", applyFilters);
 filterTo.addEventListener("change", applyFilters);
 
 document.getElementById("clearFiltersBtn").addEventListener("click", function () {
+  searchInput.value = "";
+  filterCategory.value = "";
   filterMatiere.value = "";
   filterFrom.value = "";
   filterTo.value = "";
@@ -603,12 +843,29 @@ document.getElementById("clearFiltersBtn").addEventListener("click", function ()
 });
 
 function applyFilters() {
+  const searchValue = searchInput.value.trim().toLowerCase();
+  const categoryValue = filterCategory.value;
   const matiereValue = filterMatiere.value;
   const fromValue = filterFrom.value;
   const toValue = filterTo.value;
 
   const filtered = allProducts.filter(product => {
+    const searchableText = [
+      product.codeabare,
+      product.nameproduit,
+      product.category,
+      product.matiere,
+      product.price,
+      product.priceByWeight,
+      product.sellingPrice,
+      product.from,
+      product.weidth,
+      product.to
+    ].join(" ").toLowerCase();
+
     return (
+      (!searchValue || searchableText.includes(searchValue)) &&
+      (!categoryValue || product.category === categoryValue) &&
       (!matiereValue || product.matiere === matiereValue) &&
       (!fromValue || product.from === fromValue) &&
       (!toValue || product.to === toValue)
@@ -627,7 +884,7 @@ function renderResults(results) {
   if (!results.length) {
     resultsTableBody.innerHTML = `
       <tr>
-        <td colspan="5">No results found.</td>
+        <td colspan="5">${t("noResults")}</td>
       </tr>
     `;
     return;
@@ -656,12 +913,12 @@ document.getElementById("refreshUserProductsBtn").addEventListener("click", load
 document.getElementById("refreshResultsBtn").addEventListener("click", loadResults);
 
 // =====================================================
-// Integrated calculator logic
-// Adapted from calculateur prix piece devises
+// Attached calculator logic
+// Main logic kept, only added line to write finalOut into priceByWeight
 // =====================================================
-const calcCurrencies = ["TND", "EUR", "USD", "GBP", "TRY", "AED", "SAR", "CAD"];
+const currencies = ['TND', 'EUR', 'USD', 'GBP', 'TRY', 'AED', 'SAR', 'CAD'];
 
-const calcDefaultRatesToTnd = {
+const defaultRatesToTnd = {
   TND: 1,
   EUR: 3.35,
   USD: 3.10,
@@ -672,167 +929,122 @@ const calcDefaultRatesToTnd = {
   CAD: 2.28
 };
 
-function initializeCalculator() {
-  fillCalculatorCurrencies();
-  buildCalculatorRates();
-
-  document.getElementById("calculatePriceBtn").addEventListener("click", calculateWeightPrice);
-  document.getElementById("resetCalcRatesBtn").addEventListener("click", resetCalculatorRates);
-}
-
-function fillCalculatorCurrencies() {
-  ["calcShippingCurrency", "calcPieceCurrency", "calcOutputCurrency"].forEach(id => {
+function fillCurrencies() {
+  ['shippingCurrency', 'pieceCurrency', 'outputCurrency'].forEach(id => {
     const select = document.getElementById(id);
-    select.innerHTML = "";
-
-    calcCurrencies.forEach(currency => {
-      const option = document.createElement("option");
-      option.value = currency;
-      option.textContent = currency;
-      select.appendChild(option);
+    select.innerHTML = '';
+    currencies.forEach(cur => {
+      const opt = document.createElement('option');
+      opt.value = cur;
+      opt.textContent = cur;
+      select.appendChild(opt);
     });
   });
-
-  document.getElementById("calcShippingCurrency").value = "TND";
-  document.getElementById("calcPieceCurrency").value = "EUR";
-  document.getElementById("calcOutputCurrency").value = "TND";
+  document.getElementById('shippingCurrency').value = 'TND';
+  document.getElementById('pieceCurrency').value = 'EUR';
+  document.getElementById('outputCurrency').value = 'TND';
 }
 
-function buildCalculatorRates() {
-  const box = document.getElementById("calcRates");
-  box.innerHTML = "";
-
-  calcCurrencies.forEach(currency => {
-    const div = document.createElement("div");
-    div.className = "rate-box";
-
+function buildRates() {
+  const box = document.getElementById('rates');
+  box.innerHTML = '';
+  currencies.forEach(cur => {
+    const div = document.createElement('div');
+    div.className = 'rateBox';
     div.innerHTML = `
-      <label for="calcRate_${currency}">1 ${currency} = TND</label>
-      <input 
-        id="calcRate_${currency}" 
-        type="number" 
-        min="0" 
-        step="0.000001" 
-        value="${calcDefaultRatesToTnd[currency]}"
-      >
+      <label for="rate_${cur}">1 ${cur} = TND</label>
+      <input id="rate_${cur}" type="number" min="0" step="0.000001" value="${defaultRatesToTnd[cur]}">
     `;
-
     box.appendChild(div);
   });
-
-  document.getElementById("calcRate_TND").readOnly = true;
+  document.getElementById('rate_TND').readOnly = true;
 }
 
-function resetCalculatorRates() {
-  calcCurrencies.forEach(currency => {
-    document.getElementById("calcRate_" + currency).value = calcDefaultRatesToTnd[currency];
-  });
+function resetRates() {
+  currencies.forEach(cur => document.getElementById('rate_' + cur).value = defaultRatesToTnd[cur]);
 }
 
-function calcNum(id) {
+function num(id) {
   return Number(document.getElementById(id).value);
 }
 
-function calcRate(currency) {
-  return Number(document.getElementById("calcRate_" + currency).value);
+function rate(cur) {
+  return Number(document.getElementById('rate_' + cur).value);
 }
 
-function calcToTnd(value, currency) {
-  return value * calcRate(currency);
+function toTnd(value, cur) {
+  return value * rate(cur);
 }
 
-function calcFromTnd(valueTnd, currency) {
-  return valueTnd / calcRate(currency);
+function fromTnd(valueTnd, cur) {
+  return valueTnd / rate(cur);
 }
 
-function calcMoney(value, currency) {
+function money(value, currency) {
   const rounded = Math.round((value + Number.EPSILON) * 1000) / 1000;
-  return rounded.toLocaleString("fr-FR") + " " + currency;
+  return rounded.toLocaleString('fr-FR') + ' ' + currency;
 }
 
-function calculateWeightPrice() {
-  const shippingPrice = calcNum("calcShippingPrice");
-  const bagWeight = calcNum("calcBagWeight");
-  const piecePrice = calcNum("calcPiecePrice");
-  const pieceWeight = calcNum("calcPieceWeight");
+function calculate() {
+  const shippingPrice = num('shippingPrice');
+  const bagWeight = num('bagWeight');
+  const piecePrice = num('piecePrice');
+  const pieceWeight = num('pieceWeight');
+  const shippingCurrency = document.getElementById('shippingCurrency').value;
+  const pieceCurrency = document.getElementById('pieceCurrency').value;
+  const outputCurrency = document.getElementById('outputCurrency').value;
+  const unit = document.getElementById('unit').value || 'kg';
+  const error = document.getElementById('error');
+  const result = document.getElementById('result');
+  error.style.display = 'none';
+  result.style.display = 'none';
 
-  const shippingCurrency = document.getElementById("calcShippingCurrency").value;
-  const pieceCurrency = document.getElementById("calcPieceCurrency").value;
-  const outputCurrency = document.getElementById("calcOutputCurrency").value;
-  const unit = document.getElementById("calcUnit").value || "kg";
-
-  const error = document.getElementById("calcError");
-  const result = document.getElementById("calcResult");
-
-  error.style.display = "none";
-  error.textContent = "";
-  result.classList.add("hidden");
-
-  const allNumbers = [
-    shippingPrice,
-    bagWeight,
-    piecePrice,
-    pieceWeight,
-    ...calcCurrencies.map(calcRate)
-  ];
-
-  if (allNumbers.some(value => Number.isNaN(value))) {
-    error.textContent = "Please fill all calculator fields with valid numbers.";
-    error.style.display = "block";
+  const allNums = [shippingPrice, bagWeight, piecePrice, pieceWeight, ...currencies.map(rate)];
+  if (allNums.some(v => Number.isNaN(v))) {
+    error.textContent = 'عبي الخانات الكل بأرقام صحيحة.';
+    error.style.display = 'block';
     return;
   }
 
   if (bagWeight <= 0) {
-    error.textContent = "Total bag weight must be greater than 0.";
-    error.style.display = "block";
+    error.textContent = 'ميزان الحقيبة لازم يكون أكبر من 0.';
+    error.style.display = 'block';
     return;
   }
 
-  if (
-    shippingPrice < 0 ||
-    piecePrice < 0 ||
-    pieceWeight < 0 ||
-    calcCurrencies.some(currency => calcRate(currency) <= 0)
-  ) {
-    error.textContent = "Numbers and exchange rates must be greater than 0.";
-    error.style.display = "block";
+  if (shippingPrice < 0 || piecePrice < 0 || pieceWeight < 0 || currencies.some(cur => rate(cur) <= 0)) {
+    error.textContent = 'الأرقام وأسعار الصرف لازم يكونوا أكبر من 0، وما ينجمش يكونوا ناقصين.';
+    error.style.display = 'block';
     return;
   }
 
-  const shippingTnd = calcToTnd(shippingPrice, shippingCurrency);
-  const piecePriceTnd = calcToTnd(piecePrice, pieceCurrency);
-
+  const shippingTnd = toTnd(shippingPrice, shippingCurrency);
+  const piecePriceTnd = toTnd(piecePrice, pieceCurrency);
   const pricePerUnitTnd = shippingTnd / bagWeight;
   const pieceShippingTnd = pricePerUnitTnd * pieceWeight;
   const finalTnd = piecePriceTnd + pieceShippingTnd;
 
-  const pricePerUnitOut = calcFromTnd(pricePerUnitTnd, outputCurrency);
-  const pieceShippingOut = calcFromTnd(pieceShippingTnd, outputCurrency);
-  const piecePriceOut = calcFromTnd(piecePriceTnd, outputCurrency);
-  const finalOut = calcFromTnd(finalTnd, outputCurrency);
+  const pricePerUnitOut = fromTnd(pricePerUnitTnd, outputCurrency);
+  const pieceShippingOut = fromTnd(pieceShippingTnd, outputCurrency);
+  const piecePriceOut = fromTnd(piecePriceTnd, outputCurrency);
+  const finalOut = fromTnd(finalTnd, outputCurrency);
 
-  document.getElementById("calcPricePerKg").textContent = calcMoney(pricePerUnitOut, outputCurrency) + " / " + unit;
-  document.getElementById("calcPieceShipping").textContent = calcMoney(pieceShippingOut, outputCurrency);
-  document.getElementById("calcOriginalPrice").textContent = calcMoney(piecePriceOut, outputCurrency);
-  document.getElementById("calcFinalPrice").textContent = calcMoney(finalOut, outputCurrency);
-  document.getElementById("calcFinalTnd").textContent = calcMoney(finalTnd, "TND");
+  document.getElementById('pricePerKg').textContent = money(pricePerUnitOut, outputCurrency) + ' / ' + unit;
+  document.getElementById('pieceShipping').textContent = money(pieceShippingOut, outputCurrency);
+  document.getElementById('originalPrice').textContent = money(piecePriceOut, outputCurrency);
+  document.getElementById('finalPrice').textContent = money(finalOut, outputCurrency);
+  document.getElementById('finalTnd').textContent = money(finalTnd, 'TND');
+  result.style.display = 'block';
 
-  // Put calculated result into the new Add Product input field
-  document.getElementById("calculatedWeightPrice").value =
+  // Required integration: send calculator result to Add Product input
+  document.getElementById("priceByWeight").value =
     Math.round((finalOut + Number.EPSILON) * 1000) / 1000;
 
-  // Helpful auto-fill: if product price is empty, fill it with original piece price
-  if (!document.getElementById("price").value) {
-    document.getElementById("price").value = piecePrice;
-  }
-
-  result.classList.remove("hidden");
-
-  Swal.fire("Calculated", "Calculated weight price added to the product form.", "success");
+  Swal.fire(t("calculated"), t("calculatedAdded"), "success");
 }
 
 // =====================================================
-// Security helpers for displaying text safely
+// Security helpers
 // =====================================================
 function escapeHtml(value) {
   if (value === null || value === undefined) return "";
